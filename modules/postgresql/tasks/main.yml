@@ -1,0 +1,26 @@
+---
+- name: check if PostgreSQL server is installed
+  stat: path=/etc/rc.d/init.d/postgresql
+  register: pg_init_script
+  no_log: True
+
+- name: install PostgreSQL server packages
+  become: yes
+  apt_rpm: name={{ item }} state=installed update_cache=True
+  with_items:
+   - postgresql12-server
+  when: pg_init_script.stat.exists == False
+
+- name: check if database already created
+  stat: path=/var/lib/pgsql/data
+  register: pg_data
+  no_log: True
+
+- name: init Postgresql system database
+  become: yes
+  command: /etc/rc.d/init.d/postgresql initdb
+  when: pg_data.stat.exists == False
+
+- name: start PostgreSQL service
+  become: yes
+  service: name=postgresql state=started enabled=yes

@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# Copyright (C) 2019-2020 Andrey Cherepanov <cas@altlinux.org>
+# This file is part of deploy <https://altlinux.org/Deploy>.
+#
+# deploy is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# deploy is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with deploy. If not, see <http://www.gnu.org/licenses/>.
+
+version="0.1"
+modules_dir="/usr/share/deploy"
+VERBOSE=""
+
+usage()
+{
+	echo "Usage: deploy [-d] <role> [<args>]  Deploy specified role"
+	echo "       deploy --help     This help"
+	echo "       deploy --version  This help"
+	echo "If <module> is omitted program shows all available roles."
+	exit 0
+}
+
+version() 
+{
+	echo "$version"
+	exit 0
+}
+
+list_roles()
+{
+	cd "$modules_dir"
+	/bin/ls -1 *.yml 2>/dev/null | sed 's|\.yml$||'
+	exit 0
+}
+
+# Run specified module
+deploy_role()
+{
+	target="$1"
+	cd "$modules_dir"
+	if [ ! -s "$target.yml" ]; then
+		echo "Unable to find role $target" >&2
+		exit 1
+	fi
+	echo "Deploying $target..."
+	ansible-playbook $VERBOSE "$target.yml"
+	ret="$?"
+	if [ $? -eq 0 ]; then
+		echo "Deploy complete successful."
+		exit 0
+	else
+		echo "Error deploy $target"
+		exit $ret
+	fi
+}
+
+command="$1"
+
+# Process default parameters
+test "$command" = "-h" -o "$command" = "--help" && usage
+test "$command" = "--version" && version
+test -z "$command" && list_roles
+if [ "$command" = "-d" ]; then
+	VERBOSE="-v"
+	shift
+fi
+deploy_role $@
