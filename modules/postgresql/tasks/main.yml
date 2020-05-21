@@ -12,7 +12,7 @@
   when: pg_init_script.stat.exists == False
 
 - name: check if database already created
-  stat: path=/var/lib/pgsql/data
+  stat: path=/var/lib/pgsql/data/global
   register: pg_data
   no_log: True
 
