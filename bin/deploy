@@ -22,7 +22,7 @@ VERBOSE=""
 
 usage()
 {
-	echo "Usage: deploy [-d] <role> [<args>]  Deploy specified role"
+	echo "Usage: deploy [-d] <role> [<parameters>]  Deploy specified role"
 	echo "       deploy --help     This help"
 	echo "       deploy --version  This help"
 	echo "If <module> is omitted program shows all available roles."
@@ -50,13 +50,20 @@ list_roles()
 deploy_role()
 {
 	target="$1"
+	shift
+
 	cd "$modules_dir"
 	if [ ! -s "$target.yml" ]; then
 		echo "Unable to find role $target" >&2
 		exit 1
 	fi
 	echo "Deploying $target..."
-	ansible-playbook $VERBOSE "$target.yml"
+	if [ -n "$*" ]; then
+		# Pass varialbles
+		ansible-playbook $VERBOSE "$target.yml" --extra-vars "$*"
+	else
+		ansible-playbook $VERBOSE "$target.yml"
+	fi
 	ret="$?"
 	if [ "$ret" -eq 0 ]; then
 		echo "Deploy complete successful."
