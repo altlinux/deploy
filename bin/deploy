@@ -54,7 +54,7 @@ deploy_role()
 	echo "Deploying $target..."
 	ansible-playbook $VERBOSE "$target.yml"
 	ret="$?"
-	if [ $? -eq 0 ]; then
+	if [ "$ret" -eq 0 ]; then
 		echo "Deploy complete successful."
 		exit 0
 	else
