@@ -25,7 +25,7 @@ usage()
 	echo "Usage: deploy [-d] <role> [<parameters>]  Deploy specified role"
 	echo "       deploy --help     This help"
 	echo "       deploy --version  This help"
-	echo "If <module> is omitted program shows all available roles."
+	echo "If <role> is omitted program shows all available roles."
 	exit 0
 }
 
