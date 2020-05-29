@@ -37,6 +37,10 @@ version()
 
 list_roles()
 {
+	if [ ! -d "$modules_dir" ]; then
+		echo "There is no roles directory ($modules_dir). Check installation."
+		exit 1
+	fi
 	cd "$modules_dir"
 	/bin/ls -1 *.yml 2>/dev/null | sed 's|\.yml$||'
 	exit 0
@@ -73,4 +77,11 @@ if [ "$command" = "-d" ]; then
 	VERBOSE="-v"
 	shift
 fi
-deploy_role $@
+
+# Check for superuser privileges
+if [ "$EUID" -ne 0 ]; then
+	echo "Insufficient privileges. Please run as root."
+	exit 1
+fi
+
+deploy_role "$@"
