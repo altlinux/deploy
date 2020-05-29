@@ -22,7 +22,9 @@ VERBOSE=""
 
 usage()
 {
+	parameters_msg="Show available parameters for specified role"
 	echo "Usage: deploy [-d] <role> [<parameters>]  Deploy specified role"
+	echo "       deploy --parameters <role>  $parameters_msg"
 	echo "       deploy --help     This help"
 	echo "       deploy --version  This help"
 	echo "If <role> is omitted program shows all available roles."
@@ -43,6 +45,15 @@ list_roles()
 	fi
 	cd "$modules_dir"
 	/bin/ls -1 *.yml 2>/dev/null | sed 's|\.yml$||'
+	exit 0
+}
+
+list_parameters()
+{
+	role="$1"
+	defaults_file="$modules_dir/$role/defaults/main.yml"
+	[ -s "$defaults_file" ] || exit 0
+	sed -nE 's/^(\w+):\s*(.*)/\1=\2/p' "$defaults_file"
 	exit 0
 }
 
@@ -79,6 +90,11 @@ command="$1"
 # Process default parameters
 test "$command" = "-h" -o "$command" = "--help" && usage
 test "$command" = "--version" && version
+if [ "$command" = "--parameters" ]; then
+	role="${2-}"
+	[ -n "$role" ] || usage
+	list_parameters "$role"
+fi
 test -z "$command" && list_roles
 if [ "$command" = "-d" ]; then
 	VERBOSE="-v"
