@@ -48,9 +48,20 @@ list_roles()
 	exit 0
 }
 
+check_role()
+{
+	role="$1"
+	if [ ! -s "$modules_dir/$role.yml" ]; then
+		echo "Unable to find role $role" >&2
+		exit 1
+	fi
+
+}
+
 list_parameters()
 {
 	role="$1"
+	check_role "$role"
 	defaults_file="$modules_dir/$role/defaults/main.yml"
 	[ -s "$defaults_file" ] || exit 0
 	sed -nE 's/^(\w+):\s*(.*)/\1=\2/p' "$defaults_file"
@@ -64,10 +75,7 @@ deploy_role()
 	shift
 
 	cd "$modules_dir"
-	if [ ! -s "$target.yml" ]; then
-		echo "Unable to find role $target" >&2
-		exit 1
-	fi
+	check_role "$target"
 	echo "Deploying $target..."
 	if [ -n "$*" ]; then
 		# Pass varialbles
