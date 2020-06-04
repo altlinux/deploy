@@ -116,3 +116,5 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 deploy_role "$@"
+
+# vi: noexpandtab
