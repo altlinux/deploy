@@ -1,0 +1,7 @@
+---
+- name: deploy Apache web server
+  hosts: local
+  remote_user: root
+  gather_facts: false
+  roles:
+      - apache
