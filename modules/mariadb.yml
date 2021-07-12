@@ -1,0 +1,7 @@
+---
+- name: deploy MariaDB database server
+  hosts: local
+  remote_user: root
+  gather_facts: false
+  roles:
+      - mariadb

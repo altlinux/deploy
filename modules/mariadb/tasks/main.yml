@@ -1,0 +1,13 @@
+---
+- name: install MariaDB server packages
+  become: yes
+  apt_rpm: name={{ item }} state=installed update_cache=True
+  with_items:
+   - mariadb-server
+
+- name: start MariaDB service
+  become: yes
+  service: 
+    name: mariadb
+    state: started
+    enabled: yes
