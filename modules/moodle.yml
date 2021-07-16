@@ -1,0 +1,24 @@
+---
+- name: deploy Moodle
+  hosts: local
+  remote_user: root
+  gather_facts: false
+  vars:
+    moodle_config: /var/www/webapps/moodle/config.php
+  roles:
+    - role: apache
+      when: password is not defined
+    - role: mariadb
+      when: password is not defined
+    - role: moodle
+      when: password is not defined
+  tasks:
+    - name: Change password to Moodle for user admin
+      shell: |
+        cd /var/www/webapps/moodle/admin/cli; \
+        php reset_password.php \
+        --username="admin" \
+        --password='{{ password }}' \
+        --ignore-password-policy
+      no_log: True
+      when: password is defined

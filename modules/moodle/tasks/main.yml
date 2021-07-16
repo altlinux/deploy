@@ -1,0 +1,71 @@
+---
+- name: install Moodle packages
+  apt_rpm: name={{ item }} state=installed update_cache=True
+  with_items:
+   - moodle
+   - moodle-apache2
+   - moodle-base
+   - moodle-local-mysql
+   - python3-module-pymysql
+   - pwgen
+   - curl
+
+- name: check if database moodle1 exists
+  mysql_db:
+    name: moodle1
+    encoding: utf8mb4
+    collation: utf8mb4_unicode_ci
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    state: present
+
+- name: generate password for Moodle
+  shell: pwgen 16 1
+  register: moodle_password
+  no_log: True
+  changed_when: False
+
+- name: create database user
+  mysql_user:
+    name: moodleuser
+    password: "{{ moodle_password.stdout }}"
+    priv: 'moodle1.*:ALL'
+    state: present
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    update_password: on_create
+  no_log: True
+
+- name: check for config file
+  stat:
+    path: "{{ moodle_config }}"
+  register: mdl_config
+  no_log: True
+
+- name: generate configuration by install script from moodle
+  shell: |
+      cd /var/www/webapps/moodle/admin/cli; \
+      php install.php \
+        --fullname="Moodle" \
+        --shortname="Moodle" \
+        --lang=ru \
+        --dbtype=mariadb \
+        --dbhost=localhost \
+        --dbname=moodle1 \
+        --dbuser=moodleuser \
+        --adminpass='{{ moodle_password.stdout }}' \
+        --dbpass='{{ moodle_password.stdout }}' \
+        --wwwroot="https://$(hostname)/moodle" \
+        --agree-license \
+        --non-interactive
+  when: mdl_config.stat.exists == False
+  no_log: True
+
+- name: reload Apache2 configuration
+  command: service httpd2 condreload
+  args:
+    warn: no
+  changed_when: False
+
+- name: one try to open web page
+  shell: "curl -s --insecure https://$(hostname)/wiki &>/dev/null ||:"
+  no_log: True
+  changed_when: False
