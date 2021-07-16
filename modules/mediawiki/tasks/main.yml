@@ -4,8 +4,11 @@
   with_items:
    - mediawiki
    - mediawiki-apache2
+   - mediawiki-mysql
+   - mediawiki-ldap
    - python3-module-pymysql
-   - pwqgen
+   - pwgen
+   - curl
 
 - name: check if database wikidb exists
   mysql_db:
@@ -14,7 +17,7 @@
     state: present
 
 - name: generate password for MediaWiki
-  shell: pwqgen
+  shell: pwgen 16 1
   register: mediawiki_password
   no_log: True
   changed_when: False
