@@ -78,7 +78,6 @@
     replace: '$wgEmailAuthentication = false;'
 
 - name: reload Apache2 configuration
-  become: yes
   command: service httpd2 condreload
   args:
     warn: no

@@ -5,7 +5,6 @@
   no_log: True
 
 - name: install PostgreSQL server packages
-  become: yes
   apt_rpm: name={{ item }} state=installed update_cache=True
   with_items:
    - postgresql12-server
@@ -17,10 +16,8 @@
   no_log: True
 
 - name: init Postgresql system database
-  become: yes
   command: /etc/rc.d/init.d/postgresql initdb
   when: pg_data.stat.exists == False
 
 - name: start PostgreSQL service
-  become: yes
   service: name=postgresql state=started enabled=yes

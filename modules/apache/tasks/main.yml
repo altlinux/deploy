@@ -1,6 +1,5 @@
 ---
 - name: install Apache packages
-  become: yes
   apt_rpm: name={{ item }} state=installed update_cache=True
   with_items:
    - apache2-base
@@ -14,54 +13,43 @@
   no_log: True
 
 - name: generate certificate file
-  become: yes
   shell: /usr/bin/httpd2-cert-sh generate httpd2
   when: apache_cert_file.stat.exists == False
 
 - name: enable Apache2 module filter
-  become: yes
   apache2_module: state=present name=filter
 
 - name: enable Apache2 module ssl
-  become: yes
   apache2_module: state=present name=ssl
 
 - name: enable Apache2 module rewrite
-  become: yes
   apache2_module: state=present name=rewrite
 
 - name: enable Apache2 module headers
-  become: yes
   apache2_module: state=present name=headers
 
 - name: enable Apache2 module env
-  become: yes
   apache2_module: state=present name=env
 
 - name: enable Apache2 module dir
-  become: yes
   apache2_module: state=present name=dir
 
 - name: enable Apache2 module mime
-  become: yes
   apache2_module: state=present name=mime
 
 - name: enable HTTPS (default_https)
-  become: yes
   command: a2ensite default_https
   register: cmd1_result
   no_log: True
   changed_when: cmd1_result.stdout != "Site config .confThis site is already enabled!"
 
 - name: enable HTTPS (https)
-  become: yes
   command: a2enport https
   register: cmd1_result
   no_log: True
   changed_when: cmd1_result.stdout != "Port config https.conf is already enabled!"
 
 - name: configure port 80
-  become: yes
   lineinfile:
     dest: /etc/httpd2/conf/sites-available/ports_all.conf
     regexp: '^NameVirtualHost *:80$'
@@ -70,7 +58,6 @@
     insertafter: EOF
 
 - name: configure port 443
-  become: yes
   lineinfile:
     dest: /etc/httpd2/conf/sites-available/ports_all.conf
     regexp: '^NameVirtualHost *:443$'
@@ -79,28 +66,24 @@
     insertafter: EOF
 
 - name: change example server name
-  become: yes
   replace:
     path: /etc/httpd2/conf/sites-available/default_https.conf
     regexp: 'www\.example\.com'
     replace: 'localhost.localdomain'
 
 - name: change _default_ placeholder for https
-  become: yes
   replace:
     path: /etc/httpd2/conf/sites-available/default_https.conf
     regexp: '_default_'
     replace: '*'
 
 - name: set port 80 for default server
-  become: yes
   lineinfile:
     dest: /etc/httpd2/conf/sites-available/default.conf
     regexp: '^<VirtualHost \*>'
     line: '<VirtualHost *:80>'
 
 - name: add RewriteEngine On
-  become: yes
   lineinfile:
     dest: /etc/httpd2/conf/sites-available/default.conf
     regexp: '^RewriteEngine On$'
@@ -109,7 +92,6 @@
     insertbefore: '^<\/VirtualHost>'
 
 - name: add RewriteCond
-  become: yes
   lineinfile:
     dest: /etc/httpd2/conf/sites-available/default.conf
     regexp: '^RewriteCond'
@@ -118,7 +100,6 @@
     insertbefore: '^<\/VirtualHost>'
 
 - name: add RewriteRule
-  become: yes
   lineinfile:
     dest: /etc/httpd2/conf/sites-available/default.conf
     regexp: '^RewriteRule'
@@ -127,7 +108,6 @@
     insertbefore: '^<\/VirtualHost>'
 
 - name: detect PHP settings
-  become: yes
   shell: rpm -ql apache2-mod_php7 | grep php.ini
   args:
     warn: no
@@ -136,7 +116,6 @@
   changed_when: False
 
 - name: configure PHP memory_limit setting
-  become: yes
   ini_file:
     path: "{{ php_ini.stdout }}"
     section: PHP
@@ -145,7 +124,6 @@
   no_log: True
 
 - name: configure PHP upload_max_filesize setting
-  become: yes
   ini_file:
     path: "{{ php_ini.stdout }}"
     section: PHP
@@ -154,22 +132,18 @@
   no_log: True
 
 - name: reload Apache2 configuration
-  become: yes
   command: service httpd2 condreload
   args:
     warn: no
   changed_when: False
 
 - name: start Apache service
-  become: yes
   service: name=httpd2 state=started enabled=yes
 
 - name: detect HTTP DocumentRoot
-  become: yes
   shell: "awk '/^[[:space:]]*DocumentRoot/ {print \"DocumentRoot for http: \" $2}' /etc/httpd2/conf/sites-enabled/000-default.conf"
   changed_when: False
 
 - name: detect HTTPS DocumentRoot
-  become: yes
   shell: "awk '/^[[:space:]]*DocumentRoot/ {print \"DocumentRoot for https: \" $2}' /etc/httpd2/conf/sites-enabled/000-default_https.conf"
   changed_when: False
