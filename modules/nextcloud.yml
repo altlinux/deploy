@@ -1,0 +1,22 @@
+---
+- name: deploy Nextcloud
+  hosts: local
+  remote_user: root
+  gather_facts: false
+  vars:
+    nextcloud_config: /var/www/webapps/nextcloud/config/config.php
+  roles:
+    - role: apache
+      when: password is not defined
+    - role: mariadb
+      when: password is not defined
+    - role: nextcloud
+      when: password is not defined
+  tasks:
+    - name: change password to Nextcloud for user root
+      become: yes
+      become_method: su
+      become_user: apache2
+      become_flags: '-s /bin/sh'
+      shell: "env OC_PASS='{{ password }}' php /var/www/webapps/nextcloud/occ user:resetpassword --password-from-env root"
+      when: password is defined

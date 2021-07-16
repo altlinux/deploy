@@ -1,0 +1,83 @@
+---
+- name: install Nextcloud packages
+  apt_rpm: name={{ item }} state=installed update_cache=True
+  with_items:
+    - nextcloud
+    - nextcloud-apache2
+    - php7-pcntl
+    - php7-pdo_mysql
+    - python3-module-pymysql
+    - pwgen
+    - curl
+
+- name: check if database wikidb exists
+  mysql_db:
+    name: nextcloud
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    state: present
+
+- name: generate password for MediaWiki
+  shell: pwgen 16 1
+  register: nextcloud_password
+  no_log: True
+  changed_when: False
+
+- name: create database user
+  mysql_user:
+    name: nextcloud
+    password: "{{ nextcloud_password.stdout }}"
+    priv: 'nextcloud.*:ALL'
+    state: present
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    update_password: on_create
+  no_log: True
+
+- name: check for config file
+  stat:
+    path: "{{ nextcloud_config }}"
+  register: nc_config
+  no_log: True
+
+- name: generate configuration by install script from nextcloud
+  become: yes
+  become_method: su
+  become_user: apache2
+  become_flags: '-s /bin/sh'
+  shell: |
+       php -d memory_limit=512M \
+        /var/www/webapps/nextcloud/occ \
+        maintenance:install \
+        --database "mysql" \
+        --database-name "nextcloud" \
+        --database-user "nextcloud" \
+        --database-pass '{{ nextcloud_password.stdout }}' \
+        --database-host "localhost" \
+        --admin-user "root" \
+        --admin-pass '{{ nextcloud_password.stdout }}'
+  when: nc_config.stat.exists == False
+  #no_log: True
+
+- name: get full host name
+  shell: hostname
+  register: full_hostname
+  no_log: True
+  changed_when: False
+
+- name: add full hostname to config
+  lineinfile:
+    dest: "{{ nextcloud_config }}"
+    regexp: '    1 => .*'
+    line: "    1 => '{{ full_hostname.stdout }}',"
+    state: present
+    insertafter: '^.*0 =>'
+
+- name: reload Apache2 configuration
+  command: service httpd2 condreload
+  args:
+    warn: no
+  changed_when: False
+
+- name: one try to open web page
+  shell: "curl -s --insecure https://localhost/nextcloud &>/dev/null ||:"
+  no_log: True
+  changed_when: False
