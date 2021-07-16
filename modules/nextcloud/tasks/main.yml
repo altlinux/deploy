@@ -16,7 +16,7 @@
     login_unix_socket: /var/lib/mysql/mysql.sock
     state: present
 
-- name: generate password for MediaWiki
+- name: generate password for Nextcloud
   shell: pwgen 16 1
   register: nextcloud_password
   no_log: True
