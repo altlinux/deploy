@@ -7,7 +7,7 @@
 
 - name: start MariaDB service
   become: yes
-  service: 
+  service:
     name: mariadb
     state: started
     enabled: yes

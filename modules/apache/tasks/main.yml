@@ -87,14 +87,14 @@
 
 - name: change _default_ placeholder for https
   become: yes
-  replace: 
+  replace:
     path: /etc/httpd2/conf/sites-available/default_https.conf
     regexp: '_default_'
     replace: '*'
 
 - name: set port 80 for default server
   become: yes
-  lineinfile: 
+  lineinfile:
     dest: /etc/httpd2/conf/sites-available/default.conf
     regexp: '^<VirtualHost \*>'
     line: '<VirtualHost *:80>'
@@ -106,7 +106,7 @@
     regexp: '^RewriteEngine On$'
     line: 'RewriteEngine On'
     state: present
-    insertbefore: '^<\/VirtualHost>' 
+    insertbefore: '^<\/VirtualHost>'
 
 - name: add RewriteCond
   become: yes
@@ -115,7 +115,7 @@
     regexp: '^RewriteCond'
     line: 'RewriteCond %{HTTPS} !=on'
     state: present
-    insertbefore: '^<\/VirtualHost>' 
+    insertbefore: '^<\/VirtualHost>'
 
 - name: add RewriteRule
   become: yes
@@ -155,7 +155,7 @@
 
 - name: reload Apache2 configuration
   become: yes
-  command: service httpd2 condreload 
+  command: service httpd2 condreload
   args:
     warn: no
   changed_when: False
