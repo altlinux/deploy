@@ -1,0 +1,19 @@
+---
+- name: deploy MediaWiki
+  hosts: local
+  remote_user: root
+  gather_facts: false
+  vars:
+    mediawiki_config: /var/www/webapps/mediawiki/config/LocalSettings.php
+    mediawiki_generated_config: /usr/share/mediawiki/LocalSettings.php
+  roles:
+    - role: apache
+      when: password is not defined
+    - role: mariadb
+      when: password is not defined
+    - role: mediawiki
+      when: password is not defined
+  tasks:
+    - name: Change password to MediaWiki for user WikiSysop
+      shell: "php /usr/share/mediawiki/maintenance/changePassword.php --user=\"WikiSysop\" --password='{{ password }}'"
+      when: password is defined

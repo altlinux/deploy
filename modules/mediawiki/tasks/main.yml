@@ -1,0 +1,85 @@
+---
+- name: install MediaWiki packages
+  apt_rpm: name={{ item }} state=installed update_cache=True
+  with_items:
+   - mediawiki
+   - mediawiki-apache2
+   - python3-module-pymysql
+   - pwqgen
+
+- name: check if database wikidb exists
+  mysql_db:
+    name: wikidb
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    state: present
+
+- name: generate password for MediaWiki
+  shell: pwqgen
+  register: mediawiki_password
+  no_log: True
+  changed_when: False
+
+- name: create database user
+  mysql_user:
+    name: wikiuser
+    password: "{{ mediawiki_password.stdout }}"
+    priv: 'wikidb.*:ALL'
+    state: present
+    login_unix_socket: /var/lib/mysql/mysql.sock
+    update_password: on_create
+  no_log: True
+
+- name: check for config file
+  stat:
+    path: "{{ mediawiki_config }}"
+  register: mw_config
+  no_log: True
+
+- name: generate configuration by install script from mediawiki
+  shell: |
+    php /usr/share/mediawiki/maintenance/install.php \
+        --pass "$(pwqgen)" \
+        --dbname "wikidb" \
+        --dbuser "wikiuser" \
+        --dbpass "{{ mediawiki_password.stdout }}" \
+        --scriptpath "/wiki" \
+        --with-extensions \
+        --lang "ru" \
+        "Wiki" "WikiSysop"
+  when: mw_config.stat.exists == False
+  #no_log: True
+
+- name: check for generated config file
+  stat:
+    path: "{{ mediawiki_generated_config }}"
+  register: mw_generated_config
+  no_log: True
+
+- name: move generated config file to webapps directory
+  command: mv "{{ mediawiki_generated_config }}" "{{ mediawiki_config }}"
+  when: mw_generated_config.stat.exists
+
+- name: disable $wgEnableEmail
+  replace:
+    path: "{{ mediawiki_config }}"
+    regexp: '$wgEnableEmail = true;'
+    replace: '$wgEnableEmail = false;'
+
+- name: disable $wgEnableUserEmail
+  replace:
+    path: "{{ mediawiki_config }}"
+    regexp: '$wgEnableUserEmail = true;'
+    replace: '$wgEnableUserEmail = false;'
+
+- name: disable $wgEmailAuthentication
+  replace:
+    path: "{{ mediawiki_config }}"
+    regexp: '$wgEmailAuthentication = true;'
+    replace: '$wgEmailAuthentication = false;'
+
+- name: reload Apache2 configuration
+  become: yes
+  command: service httpd2 condreload
+  args:
+    warn: no
+  changed_when: False
