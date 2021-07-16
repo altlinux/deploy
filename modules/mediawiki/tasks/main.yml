@@ -85,3 +85,8 @@
   args:
     warn: no
   changed_when: False
+
+- name: one try to open web page
+  shell: "curl -s --insecure https://localhost/wiki &>/dev/null ||:"
+  no_log: True
+  changed_when: False
