@@ -9,6 +9,7 @@
     - python3-module-pymysql
     - pwgen
     - curl
+  no_log: True
 
 - name: check if database wikidb exists
   mysql_db:
