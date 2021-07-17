@@ -41,7 +41,7 @@
 - name: generate configuration by install script from mediawiki
   shell: |
     php /usr/share/mediawiki/maintenance/install.php \
-        --pass "$(pwqgen)" \
+        --pass "$(pwgen 16 1)" \
         --dbname "wikidb" \
         --dbuser "wikiuser" \
         --dbpass "{{ mediawiki_password.stdout }}" \
