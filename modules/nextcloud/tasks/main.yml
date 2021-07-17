@@ -64,6 +64,7 @@
   no_log: True
   changed_when: False
 
+# Missing in config of Nextcloud 20+
 - name: add full hostname to config
   lineinfile:
     dest: "{{ nextcloud_config }}"
@@ -71,6 +72,7 @@
     line: "    1 => '{{ full_hostname.stdout }}',"
     state: present
     insertafter: '^.*0 =>'
+  when: False
 
 - name: reload Apache2 configuration
   command: service httpd2 condreload
