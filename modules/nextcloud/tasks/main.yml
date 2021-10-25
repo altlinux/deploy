@@ -11,7 +11,7 @@
     - curl
   no_log: True
 
-- name: check if database wikidb exists
+- name: check if database 'nextcloud' exists
   mysql_db:
     name: nextcloud
     login_unix_socket: /var/lib/mysql/mysql.sock
@@ -23,7 +23,7 @@
   no_log: True
   changed_when: False
 
-- name: create database user
+- name: create database user 'nextcloud'
   mysql_user:
     name: nextcloud
     password: "{{ nextcloud_password.stdout }}"
@@ -53,7 +53,7 @@
         --database-user "nextcloud" \
         --database-pass '{{ nextcloud_password.stdout }}' \
         --database-host "localhost" \
-        --admin-user "root" \
+        --admin-user "ncadmin" \
         --admin-pass '{{ nextcloud_password.stdout }}'
   when: nc_config.stat.exists == False
   #no_log: True
