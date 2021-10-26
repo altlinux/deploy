@@ -54,7 +54,7 @@
         --database-pass '{{ nextcloud_password.stdout }}' \
         --database-host "localhost" \
         --admin-user "ncadmin" \
-        --admin-pass '{{ nextcloud_password.stdout }}'
+        --admin-pass '{{ nextcloud_password.stdout }}' || /bin/true
   when: nc_config.stat.exists == False
   #no_log: True
 
