@@ -13,10 +13,10 @@
     - role: nextcloud
       when: password is not defined
   tasks:
-    - name: change password to Nextcloud for user root
+    - name: change password to Nextcloud for user ncadmin
       become: yes
       become_method: su
       become_user: apache2
       become_flags: '-s /bin/sh'
-      shell: "env OC_PASS='{{ password }}' php /var/www/webapps/nextcloud/occ user:resetpassword --password-from-env root"
+      shell: "env OC_PASS='{{ password }}' php -d memory_limit=512M /var/www/webapps/nextcloud/occ user:resetpassword --password-from-env ncadmin"
       when: password is defined
