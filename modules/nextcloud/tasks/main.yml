@@ -64,9 +64,14 @@
   no_log: True
   changed_when: False
 
-- name: add full hostname to config
+- name: backup config {{ nextcloud_config }} with .new extension
+  copy:
+    src: "{{ nextcloud_config }}"
+    dest: "{{ nextcloud_config }}.new"
+
+- name: add full hostname to config {{ nextcloud_config }}.new
   lineinfile:
-    dest: "{{ nextcloud_config }}"
+    dest: "{{ nextcloud_config }}.new"
     regexp: '    1 => .*'
     line: "    1 => '{{ full_hostname.stdout }}',"
     state: present
